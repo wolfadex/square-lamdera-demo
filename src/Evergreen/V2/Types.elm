@@ -1,13 +1,21 @@
-module Types exposing (..)
+module Evergreen.V2.Types exposing (..)
 
-import Browser exposing (UrlRequest)
-import Browser.Navigation exposing (Key)
-import Lamdera exposing (ClientId, SessionId)
-import Url exposing (Url)
+import Browser
+import Browser.Navigation
+import Lamdera
+import Url
+
+
+type UserMessage
+    = UserMessageV1 String
+    | UserMessageV2
+        { content : String
+        , clientId : Lamdera.ClientId
+        }
 
 
 type alias FrontendModel =
-    { key : Key
+    { key : Browser.Navigation.Key
     , messages : List UserMessage
     , newMessage : String
     }
@@ -18,17 +26,9 @@ type alias BackendModel =
     }
 
 
-type UserMessage
-    = UserMessageV1 String
-    | UserMessageV2
-        { content : String
-        , clientId : ClientId
-        }
-
-
 type FrontendMsg
-    = UrlClicked UrlRequest
-    | UrlChanged Url
+    = UrlClicked Browser.UrlRequest
+    | UrlChanged Url.Url
     | NoOpFrontendMsg
     | NewMessageChanged String
     | NewMessageSubmit
@@ -41,7 +41,7 @@ type ToBackend
 
 type BackendMsg
     = NoOpBackendMsg
-    | UserConnected SessionId ClientId
+    | UserConnected Lamdera.SessionId Lamdera.ClientId
 
 
 type ToFrontend

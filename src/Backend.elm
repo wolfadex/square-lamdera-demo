@@ -19,7 +19,7 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { messages = [ "Welcome to the chat!" ] }
+    ( { messages = [ UserMessageV2 { content = "Welcome to the chat!", clientId = "server" } ] }
     , Cmd.none
     )
 
@@ -45,8 +45,14 @@ updateFromFrontend sessionId clientId msg model =
         NoOpToBackend ->
             ( model, Cmd.none )
 
-        SubmitNewMessage newMessage ->
+        SubmitNewMessage newContent ->
             let
+                newMessage =
+                    UserMessageV2
+                        { content = newContent
+                        , clientId = clientId
+                        }
+
                 messages =
                     List.take 100 (newMessage :: model.messages)
             in

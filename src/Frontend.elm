@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Font as Font
 import Element.Input as Input
 import Html
 import Html.Attributes as Attr
@@ -93,11 +94,43 @@ viewBody model =
     column
         [ width fill, height fill ]
         [ model.messages
-            |> List.map viewMessage
-            |> List.reverse
-            |> column [ height fill ]
+            |> groupByClient
+            |> List.map viewMessageGroup
+            |> column [ height fill, width fill ]
         , viewNewMessage model.newMessage
         ]
+
+
+groupByClient : List UserMessage -> List (List UserMessage)
+groupByClient messages =
+    List.foldl
+        (\message groups ->
+            case message of
+                UserMessageV1 _ ->
+                    [ message ] :: groups
+
+                UserMessageV2 newMessage ->
+                    case groups of
+                        [] ->
+                            [ [ message ] ]
+
+                        first :: rest ->
+                            case first of
+                                [] ->
+                                    [ message ] :: rest
+
+                                (UserMessageV2 { clientId }) :: _ ->
+                                    if clientId == newMessage.clientId then
+                                        (message :: first) :: rest
+
+                                    else
+                                        [ message ] :: groups
+
+                                _ ->
+                                    [ message ] :: groups
+        )
+        []
+        messages
 
 
 viewNewMessage : String -> Element FrontendMsg
@@ -124,8 +157,66 @@ viewNewMessage newMessage =
         ]
 
 
-viewMessage : String -> Element FrontendMsg
+viewMessageGroup : List UserMessage -> Element FrontendMsg
+viewMessageGroup messageGroups =
+    column
+        [ width fill
+        , padding 8
+        , Border.solid
+        , Border.widthEach
+            { top = 0
+            , bottom = 1
+            , left = 0
+            , right = 0
+            }
+        ]
+        [ messageGroups
+            |> List.head
+            |> Maybe.map
+                (\message ->
+                    text ("[" ++ viewClientId message ++ "]")
+                        |> el
+                            [ Font.bold
+                            , paddingEach
+                                { top = 0
+                                , bottom = 0
+                                , left = 0
+                                , right = 8
+                                }
+                            , alignTop
+                            ]
+                )
+            |> Maybe.withDefault none
+        , messageGroups
+            |> List.map viewMessage
+            |> column
+                [ width fill ]
+        ]
+
+
+viewClientId : UserMessage -> String
+viewClientId message =
+    case message of
+        UserMessageV1 _ ->
+            "Anonymous"
+
+        UserMessageV2 { clientId } ->
+            clientId
+
+
+viewMessage : UserMessage -> Element FrontendMsg
 viewMessage message =
     paragraph
-        []
-        [ text message ]
+        [ width fill ]
+        [ text (viewContent message)
+        ]
+
+
+viewContent : UserMessage -> String
+viewContent message =
+    case message of
+        UserMessageV1 content ->
+            content
+
+        UserMessageV2 { content } ->
+            content
