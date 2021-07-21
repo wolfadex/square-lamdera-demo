@@ -7,9 +7,8 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Html
-import Html.Attributes as Attr
 import Lamdera
+import Theme
 import Types exposing (..)
 import Url
 
@@ -85,7 +84,14 @@ view : Model -> Lamdera.Document FrontendMsg
 view model =
     { title = ""
     , body =
-        [ layout [ width fill, height fill, padding 16 ] (viewBody model) ]
+        [ layout
+            [ width fill
+            , height fill
+            , padding 16
+            , Background.color Theme.blue
+            ]
+            (viewBody model)
+        ]
     }
 
 
@@ -184,6 +190,7 @@ viewMessageGroup messageGroups =
                                 , right = 8
                                 }
                             , alignTop
+                            , Font.color Theme.yellow
                             ]
                 )
             |> Maybe.withDefault none
